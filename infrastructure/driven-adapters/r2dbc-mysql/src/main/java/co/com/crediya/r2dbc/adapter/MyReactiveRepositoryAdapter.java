@@ -1,5 +1,6 @@
-package co.com.crediya.r2dbc;
+package co.com.crediya.r2dbc.adapter;
 
+import co.com.crediya.r2dbc.repository.MyReactiveRepository;
 import co.com.crediya.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
@@ -9,7 +10,7 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     Object/* change for domain model */,
     Object/* change for adapter model */,
     String,
-    MyReactiveRepository
+        MyReactiveRepository
 > {
     public MyReactiveRepositoryAdapter(MyReactiveRepository repository, ObjectMapper mapper) {
         /**
