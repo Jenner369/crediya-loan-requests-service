@@ -36,15 +36,4 @@ public record ErrorResponseDTO(
                 "message", message
         );
     }
-
-    public static ErrorResponseDTO fromMap(Map<String, Object> map) {
-        return new ErrorResponseDTO(
-                Date.from(Instant.parse((String) map.get("timestamp"))),
-                (String) map.get("path"),
-                (Integer) map.get("status"),
-                (String) map.get("error"),
-                (String) map.get("requestId"),
-                (String) map.get("message")
-        );
-    }
 }
