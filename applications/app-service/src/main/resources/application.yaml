@@ -1,14 +1,15 @@
 ##Spring Configuration
 server:
-  port: 8080
+  port: 8081
 spring:
   application:
-    name: CrediYALoanRequestsService
+    name: "CrediYALoanRequestsService"
   devtools:
     add-properties: false
-  h2:
-    console:
-      enabled: true
-      path: /h2
-  profiles:
-    include:
+adapters:
+  r2dbc:
+    host: localhost
+    port: 3307
+    database: crediya_loan_requests
+    username: crediya_loan_requests_user
+    password: crediya_loan_requests_pass
