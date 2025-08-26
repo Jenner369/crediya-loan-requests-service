@@ -18,6 +18,7 @@ public class LoanApplication {
     private BigDecimal amount;
     private String term;
     private String identityDocument;
+    private String email;
     private UUID statusId;
     private UUID loanTypeId;
 }
