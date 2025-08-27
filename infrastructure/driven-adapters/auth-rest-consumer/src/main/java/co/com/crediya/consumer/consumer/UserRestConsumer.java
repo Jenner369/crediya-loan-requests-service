@@ -63,23 +63,28 @@ public class UserRestConsumer implements UserRepository {
                 return Mono.empty();
             }
 
+            String externalMessage = null;
             try {
                 var externalError = mapper.readValue(wcre.getResponseBodyAsString(), ErrorResponseDTO.class);
-                log.warn("[{}] Error externo desde AuthService: {} {}: {}",
-                        getClass().getSimpleName(),
-                        wcre.getStatusCode().value(),
-                        path + identityDocument,
-                        externalError.message()
-                );
+                if (externalError != null) {
+                    externalMessage = externalError.message();
+                }
             } catch (Exception parseEx) {
-                log.error("[{}] No se pudo parsear WebClientResponseException: {} {}: {}",
+                log.warn("[{}] No se pudo parsear body de WebClientResponseException: {} {}: {}",
                         getClass().getSimpleName(),
                         wcre.getStatusCode().value(),
                         path + identityDocument,
-                        wcre.getMessage(),
-                        parseEx
+                        parseEx.getMessage()
                 );
             }
+
+            log.warn("[{}] Error externo desde AuthService: {} {}: {}",
+                    getClass().getSimpleName(),
+                    wcre.getStatusCode().value(),
+                    path + identityDocument,
+                    externalMessage != null ? externalMessage : wcre.getMessage()
+            );
+
         } else {
             log.error("[{}] Error inesperado al consumir AuthService: {} {}: {}",
                     getClass().getSimpleName(),
@@ -92,4 +97,5 @@ public class UserRestConsumer implements UserRepository {
 
         return Mono.empty();
     }
+
 }
