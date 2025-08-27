@@ -6,7 +6,7 @@ import co.com.crediya.api.mapper.LoanApplicationDTOMapper;
 import co.com.crediya.api.presentation.contract.DTOValidator;
 import co.com.crediya.api.presentation.contract.UUIDValidator;
 import co.com.crediya.api.presentation.contract.loanapplication.v1.LoanApplicationRouterV1;
-import co.com.crediya.api.presentation.contract.loanapplication.v1.handler.RegisterLoanApplicationHandler;
+import co.com.crediya.api.presentation.contract.loanapplication.v1.handler.RegisterLoanApplicationHandlerV1;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loantype.enums.LoanTypes;
 import co.com.crediya.model.status.enums.Statuses;
@@ -30,7 +30,7 @@ import java.util.UUID;
 
 @ContextConfiguration(classes = {
         LoanApplicationRouterV1.class,
-        RegisterLoanApplicationHandler.class
+        RegisterLoanApplicationHandlerV1.class
 })
 @WebFluxTest
 class LoanApplicationRouterV1Test {

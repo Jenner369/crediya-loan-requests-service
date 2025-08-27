@@ -1,6 +1,6 @@
 package co.com.crediya.api.presentation.contract.loanapplication.v1;
 
-import co.com.crediya.api.presentation.contract.loanapplication.v1.handler.RegisterLoanApplicationHandler;
+import co.com.crediya.api.presentation.contract.loanapplication.v1.handler.RegisterLoanApplicationHandlerV1;
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
@@ -16,16 +16,16 @@ public class LoanApplicationRouterV1 {
     @RouterOperations({
         @RouterOperation(
             path = "/api/v1/solicitud",
-            beanClass = RegisterLoanApplicationHandler.class,
+            beanClass = RegisterLoanApplicationHandlerV1.class,
             beanMethod = "handle",
             method = RequestMethod.POST
         )
     })
-    public RouterFunction<ServerResponse> routerFunction(RegisterLoanApplicationHandler registerLoanApplicationHandler) {
+    public RouterFunction<ServerResponse> routerFunction(RegisterLoanApplicationHandlerV1 registerLoanApplicationHandlerV1) {
         return RouterFunctions
             .route()
             .path("/api/v1/solicitud", builder -> {
-                builder.POST("", registerLoanApplicationHandler::handle);
+                builder.POST("", registerLoanApplicationHandlerV1::handle);
             })
             .build();
         }

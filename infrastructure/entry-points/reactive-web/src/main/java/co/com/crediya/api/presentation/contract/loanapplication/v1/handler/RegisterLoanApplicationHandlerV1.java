@@ -24,7 +24,7 @@ import reactor.core.publisher.Mono;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RegisterLoanApplicationHandler implements RouteHandler {
+public class RegisterLoanApplicationHandlerV1 implements RouteHandler {
 
     private final RegisterLoanApplicationUseCase registerLoanApplicationUseCase;
     private final GetUserByIdentityDocumentUseCase getUserByIdentityDocumentUseCase;
