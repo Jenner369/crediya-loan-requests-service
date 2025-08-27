@@ -8,5 +8,6 @@ import java.util.UUID;
 
 public interface LoanTypeRepository {
     Mono<LoanType> findById(UUID id);
+    Mono<Boolean> existsById(UUID id);
     Flux<LoanType> findAll();
 }

@@ -1,4 +1,5 @@
 package co.com.crediya.model.loanapplication;
+import co.com.crediya.model.user.User;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,9 +17,16 @@ import java.util.UUID;
 public class LoanApplication {
     private UUID id;
     private BigDecimal amount;
-    private String term;
+    private Integer term;
     private String identityDocument;
     private String email;
     private UUID statusId;
     private UUID loanTypeId;
+
+    public void setUserDetails(User user) {
+        if (user != null) {
+            this.identityDocument = user.getIdentityDocument();
+            this.email = user.getEmail();
+        }
+    }
 }
