@@ -17,4 +17,9 @@ public class UUIDValidatorImp implements UUIDValidator {
             return Mono.error(new InvalidUUIDException(id));
         }
     }
+
+    @Override
+    public Mono<Void> validateExists(String id) {
+        return validate(id).then();
+    }
 }
