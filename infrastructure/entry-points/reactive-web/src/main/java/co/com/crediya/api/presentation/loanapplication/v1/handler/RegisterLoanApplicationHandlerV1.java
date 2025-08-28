@@ -1,4 +1,4 @@
-package co.com.crediya.api.presentation.contract.loanapplication.v1.handler;
+package co.com.crediya.api.presentation.loanapplication.v1.handler;
 
 import co.com.crediya.api.dto.common.ErrorResponseDTO;
 import co.com.crediya.api.dto.loanapplication.RegisterLoanApplicationDTO;

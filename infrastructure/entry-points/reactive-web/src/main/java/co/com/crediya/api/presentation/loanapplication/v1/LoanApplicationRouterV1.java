@@ -1,6 +1,6 @@
-package co.com.crediya.api.presentation.contract.loanapplication.v1;
+package co.com.crediya.api.presentation.loanapplication.v1;
 
-import co.com.crediya.api.presentation.contract.loanapplication.v1.handler.RegisterLoanApplicationHandlerV1;
+import co.com.crediya.api.presentation.loanapplication.v1.handler.RegisterLoanApplicationHandlerV1;
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
