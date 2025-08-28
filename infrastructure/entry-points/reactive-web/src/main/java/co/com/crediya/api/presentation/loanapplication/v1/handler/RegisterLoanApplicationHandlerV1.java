@@ -43,7 +43,9 @@ public class RegisterLoanApplicationHandlerV1 implements RouteHandler {
     )
     @ApiResponse(responseCode = "200", description = "Solicitud de préstamo registrada exitosamente",
             content = @Content(schema = @Schema(implementation = ShortLoanApplicationDTO.class)))
-    @ApiResponse(responseCode = "400", description = "Error de validación",
+    @ApiResponse(responseCode = "400", description = "Error de dominio",
+            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
+    @ApiResponse(responseCode = "422", description = "Error de validación",
             content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Recurso no encontrados",
             content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
