@@ -4,11 +4,13 @@ import co.com.crediya.consumer.dto.common.ErrorResponseDTO;
 import co.com.crediya.model.user.User;
 import co.com.crediya.model.user.gateways.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
@@ -19,16 +21,22 @@ public class UserRestConsumer implements UserRepository {
 
     private final ObjectMapper mapper;
     private final WebClient webClient;
+    private final CircuitBreaker circuitBreaker;
 
     private static final String BASE_PATH = "/v1/usuarios";
 
-    public UserRestConsumer(@Qualifier("authWebClient") WebClient webClient, ObjectMapper mapper) {
+    public UserRestConsumer(
+            @Qualifier("authWebClient")
+            WebClient webClient,
+            ObjectMapper mapper,
+            CircuitBreakerRegistry circuitBreakerRegistry
+    ) {
         this.webClient = webClient;
         this.mapper = mapper;
+        this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("userRestConsumer");
     }
 
     @Override
-    @CircuitBreaker(name = "findByIdentityDocument", fallbackMethod = "findUserFallback")
     public Mono<User> findByIdentityDocument(String identityDocument) {
         var path = BASE_PATH + "/identity-document/";
 
@@ -37,21 +45,13 @@ public class UserRestConsumer implements UserRepository {
                 .uri(path + "{identityDocument}", identityDocument)
                 .retrieve()
                 .bodyToMono(User.class)
-                .onErrorResume(ex -> handleWebClientError(ex, path, identityDocument));
+                .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
+                .onErrorResume(ex -> findUserFallback(identityDocument, ex));
     }
 
-    public Mono<User> findUserFallback(String identityDocument, Throwable throwable) {
-        log.error("[{}] Fallback activado para findByIdentityDocument con identityDocument {}: {}",
-                getClass().getSimpleName(),
-                identityDocument,
-                throwable.getMessage(),
-                throwable
-        );
+    public Mono<User> findUserFallback(String identityDocument, Throwable ex) {
+        var path = BASE_PATH + "/identity-document/";
 
-        return Mono.empty();
-    }
-
-    private Mono<User> handleWebClientError(Throwable ex, String path, String identityDocument) {
         if (ex instanceof WebClientResponseException wcre) {
             if (wcre.getStatusCode() == HttpStatus.NOT_FOUND) {
                 log.warn("[{}] ExternalUserNotFound - status {} {} {}: Usuario no encontrado en AuthService",
@@ -93,9 +93,10 @@ public class UserRestConsumer implements UserRepository {
                     ex.getMessage(),
                     ex
             );
+
+            return Mono.empty();
         }
 
         return Mono.empty();
     }
-
 }

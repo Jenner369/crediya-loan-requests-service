@@ -46,15 +46,15 @@ class RegisterLoanApplicationUseCaseTest {
                 .term(12)
                 .identityDocument("12345678")
                 .email("jennerjose369@gmail.com")
-                .statusId(Statuses.PENDING.getId())
-                .loanTypeId(LoanTypes.PERSONAL_LOAN.getId())
+                .statusCode(Statuses.PENDING.getCode())
+                .loanTypeCode(LoanTypes.PERSONAL_LOAN.getCode())
                 .build();
     }
 
     @Test
     void shouldRegisterLoanApplicationSuccessfully() {
         when(loanApplicationRepository.save(loanApplication)).thenReturn(Mono.just(loanApplication));
-        when(loanTypeRepository.existsById(LoanTypes.PERSONAL_LOAN.getId())).thenReturn(Mono.just(true));
+        when(loanTypeRepository.existsByCode(LoanTypes.PERSONAL_LOAN.getCode())).thenReturn(Mono.just(true));
         when(transactionalGateway.execute(any()))
                 .thenAnswer(invocation -> {
                     Supplier<Mono<?>> supplier = invocation.getArgument(0);
@@ -70,7 +70,7 @@ class RegisterLoanApplicationUseCaseTest {
 
     @Test
     void shouldThrowExceptionWhenLoanTypeNotFound() {
-        when(loanTypeRepository.existsById(LoanTypes.PERSONAL_LOAN.getId())).thenReturn(Mono.just(false));
+        when(loanTypeRepository.existsByCode(LoanTypes.PERSONAL_LOAN.getCode())).thenReturn(Mono.just(false));
         when(transactionalGateway.execute(any()))
                 .thenAnswer(invocation -> {
                     Supplier<Mono<?>> supplier = invocation.getArgument(0);

@@ -15,7 +15,7 @@ import java.util.UUID;
 public class LoanTypeReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         LoanType,
         LoanTypeEntity,
-        UUID,
+        String,
         LoanTypeReactiveRepository
 > implements LoanTypeRepository {
 
@@ -24,7 +24,7 @@ public class LoanTypeReactiveRepositoryAdapter extends ReactiveAdapterOperations
     }
 
     @Override
-    public Mono<Boolean> existsById(UUID id) {
-        return repository.existsById(id);
+    public Mono<Boolean> existsByCode(String code) {
+        return repository.existsByCode(code);
     }
 }

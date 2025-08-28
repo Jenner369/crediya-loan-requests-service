@@ -31,7 +31,7 @@ class LoanTypeReactiveRepositoryAdapterTest {
     @Mock
     ObjectMapper mapper;
 
-    private final UUID sampleId = LoanTypes.BUSINESS_LOAN.getId();
+    private final String sampleId = LoanTypes.BUSINESS_LOAN.getCode();
     private final LoanTypeEntity sampleEntity =
             new LoanTypeEntity(
                     sampleId,
@@ -56,22 +56,10 @@ class LoanTypeReactiveRepositoryAdapterTest {
     }
 
     @Test
-    void mustFindById() {
-        when(repository.findById(sampleId)).thenReturn(Mono.just(sampleEntity));
-        when(mapper.map(sampleEntity, LoanType.class)).thenReturn(sampleLoanType);
+    void mustExistByCode() {
+        when(repository.existsByCode(sampleId)).thenReturn(Mono.just(true));
 
-        var result = repositoryAdapter.findById(sampleId);
-
-        StepVerifier.create(result)
-                .expectNextMatches(value -> value.equals(sampleLoanType))
-                .verifyComplete();
-    }
-
-    @Test
-    void mustExistById() {
-        when(repository.existsById(sampleId)).thenReturn(Mono.just(true));
-
-        var result = repositoryAdapter.existsById(sampleId);
+        var result = repositoryAdapter.existsByCode(sampleId);
 
         StepVerifier.create(result)
                 .expectNext(true)

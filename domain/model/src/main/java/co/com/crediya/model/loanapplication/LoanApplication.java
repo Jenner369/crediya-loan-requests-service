@@ -20,8 +20,8 @@ public class LoanApplication {
     private Integer term;
     private String identityDocument;
     private String email;
-    private UUID statusId;
-    private UUID loanTypeId;
+    private String statusCode;
+    private String loanTypeCode;
 
     public void setUserDetails(User user) {
         if (user != null) {

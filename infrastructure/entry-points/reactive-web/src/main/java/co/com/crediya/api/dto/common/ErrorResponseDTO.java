@@ -2,7 +2,6 @@ package co.com.crediya.api.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 

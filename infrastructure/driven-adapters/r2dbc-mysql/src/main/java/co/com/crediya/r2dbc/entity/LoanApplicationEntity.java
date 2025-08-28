@@ -23,6 +23,6 @@ public class LoanApplicationEntity implements HasUUID {
     private Integer term;
     private String identityDocument;
     private String email;
-    private UUID statusId;
-    private UUID loanTypeId;
+    private String statusCode;
+    private String loanTypeCode;
 }

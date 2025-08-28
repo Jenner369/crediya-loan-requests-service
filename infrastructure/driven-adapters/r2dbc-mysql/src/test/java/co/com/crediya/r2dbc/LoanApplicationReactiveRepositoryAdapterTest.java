@@ -41,8 +41,8 @@ class LoanApplicationReactiveRepositoryAdapterTest {
                     12,
                     "12345678",
                     "jennerjose369@gmail.com",
-                    Statuses.PENDING.getId(),
-                    LoanTypes.BUSINESS_LOAN.getId()
+                    Statuses.PENDING.getCode(),
+                    LoanTypes.BUSINESS_LOAN.getCode()
             );
 
     private final LoanApplication sampleLoanApplication =
@@ -52,8 +52,8 @@ class LoanApplicationReactiveRepositoryAdapterTest {
                     12,
                     "12345678",
                     "jennerjose369@gmail.com",
-                    Statuses.PENDING.getId(),
-                    LoanTypes.BUSINESS_LOAN.getId()
+                    Statuses.PENDING.getCode(),
+                    LoanTypes.BUSINESS_LOAN.getCode()
             );
 
     @Test

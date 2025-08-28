@@ -11,7 +11,7 @@ import java.util.UUID;
 @Getter
 public enum LoanTypes {
     PERSONAL_LOAN(
-            UUID.fromString("95e99151-61dd-442b-abb3-6abca850b7aa"),
+            "personal_loan",
             "Préstamo personal",
             new BigDecimal("1000.00"),
             new BigDecimal("20000.00"),
@@ -19,7 +19,7 @@ public enum LoanTypes {
             true
     ),
     MORTGAGE_LOAN(
-            UUID.fromString("9fc995e0-aa1c-4a93-ab42-52428f023aec"),
+            "mortgage_loan",
             "Préstamo hipotecario",
             new BigDecimal("20000.00"),
             new BigDecimal("300000.00"),
@@ -27,7 +27,7 @@ public enum LoanTypes {
             false
     ),
     CAR_LOAN(
-            UUID.fromString("197a7bad-4c42-458e-909c-fbae6d6c6eb1"),
+            "car_loan",
             "Préstamo vehicular",
             new BigDecimal("5000.00"),
             new BigDecimal("100000.00"),
@@ -35,7 +35,7 @@ public enum LoanTypes {
             true
     ),
     STUDENT_LOAN(
-            UUID.fromString("f6516fd5-eca2-4db6-94a7-1f78c2ba040d"),
+            "student_loan",
             "Préstamo estudiantil",
             new BigDecimal("1000.00"),
             new BigDecimal("50000.00"),
@@ -43,7 +43,7 @@ public enum LoanTypes {
             false
     ),
     BUSINESS_LOAN(
-            UUID.fromString("3c9e078a-cddb-49e5-b4bb-300b7b664f9c"),
+            "business_loan",
             "Préstamo empresarial",
             new BigDecimal("10000.00"),
             new BigDecimal("500000.00"),
@@ -51,7 +51,7 @@ public enum LoanTypes {
             false
     );
 
-    private final UUID id;
+    private final String code;
     private final String name;
     private final BigDecimal minAmount;
     private final BigDecimal maxAmount;
@@ -59,6 +59,6 @@ public enum LoanTypes {
     private final Boolean autoApproval;
 
     public LoanType toModel() {
-        return new LoanType(id, name, minAmount, maxAmount, interestRate, autoApproval);
+        return new LoanType(code, name, minAmount, maxAmount, interestRate, autoApproval);
     }
 }

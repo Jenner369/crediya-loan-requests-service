@@ -20,7 +20,7 @@ public record RegisterLoanApplicationDTO(
 
         @Schema(description = "ID del tipo de préstamo", example = "a3f1c9e2-5d6b-4e8f-9c3a-2b1e4d5f6a7b")
         @NotNull(message = "El ID del tipo de préstamo es obligatorio")
-        String loanTypeId,
+        String loanTypeCode,
 
         @Schema(description = "Documento de identidad del solicitante", example = "123456789")
         @NotNull(message = "El documento de identidad es obligatorio")

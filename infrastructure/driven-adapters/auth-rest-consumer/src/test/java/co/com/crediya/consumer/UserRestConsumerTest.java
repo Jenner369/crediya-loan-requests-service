@@ -3,6 +3,7 @@ package co.com.crediya.consumer;
 
 import co.com.crediya.consumer.consumer.UserRestConsumer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterAll;
@@ -30,10 +31,11 @@ class UserRestConsumerTest {
         mockBackEnd = new MockWebServer();
         mockBackEnd.start();
 
-        var webClient = WebClient.builder().baseUrl(mockBackEnd.url("/").toString()).build();
-        var objectMapper = mock(ObjectMapper.class);
+        var webClient = WebClient.builder().baseUrl(mockBackEnd.url("/v1/usuarios").toString()).build();
+        var objectMapper = new ObjectMapper();
+        var registry = CircuitBreakerRegistry.ofDefaults();
 
-        userRestConsumer = new UserRestConsumer(webClient, objectMapper);
+        userRestConsumer = new UserRestConsumer(webClient, objectMapper, registry);
     }
 
     @AfterAll
@@ -84,6 +86,55 @@ class UserRestConsumerTest {
                 .setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value()));
 
         StepVerifier.create(userRestConsumer.findByIdentityDocument("error"))
+                .expectNextCount(0)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("findByIdentityDocument should return ErrorResponseDTO")
+    void testFindByIdentityDocumentErrorResponse() {
+
+        String responseBody = """
+                    {
+                        "timestamp": "2024-10-10T10:00:00Z",
+                        "status": 500,
+                        "error": "Internal Server Error",
+                        "message": "An unexpected error occurred",
+                        "path": "/api/users/identityDocument/error",
+                        "requestId": "req-123456"
+                    }
+                """;
+        mockBackEnd.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .setBody(responseBody));
+
+        StepVerifier.create(userRestConsumer.findByIdentityDocument("error"))
+                .expectNextCount(0)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("findByIdentityDocument should trigger fallback when circuit breaker is open")
+    void testFindByIdentityDocumentFallback() throws IOException {
+        mockBackEnd.shutdown();
+
+        StepVerifier.create(userRestConsumer.findByIdentityDocument("any"))
+                .expectNextCount(0)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("findByIdentityDocument should return empty when error response body cannot be parsed")
+    void testFindByIdentityDocumentErrorResponseInvalidJson() {
+        String invalidJson = "{ invalid-json-response }";
+
+        mockBackEnd.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .setBody(invalidJson));
+
+        StepVerifier.create(userRestConsumer.findByIdentityDocument("parse-error"))
                 .expectNextCount(0)
                 .verifyComplete();
     }

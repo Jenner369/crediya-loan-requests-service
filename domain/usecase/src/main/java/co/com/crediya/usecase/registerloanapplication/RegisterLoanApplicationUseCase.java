@@ -27,7 +27,7 @@ public class RegisterLoanApplicationUseCase implements ReactiveUseCase<LoanAppli
     }
 
     private Mono<LoanApplication> validateLoanTypeExists(LoanApplication loanApplication) {
-        return loanTypeRepository.existsById(loanApplication.getLoanTypeId())
+        return loanTypeRepository.existsByCode(loanApplication.getLoanTypeCode())
                 .flatMap(exists -> {
                     if (Boolean.FALSE.equals(exists)) {
                         return Mono.error(new LoanTypeNotFoundException());
@@ -38,7 +38,7 @@ public class RegisterLoanApplicationUseCase implements ReactiveUseCase<LoanAppli
     }
 
     private Mono<LoanApplication> setDefaultStatus(LoanApplication loanApplication) {
-        loanApplication.setStatusId(Statuses.PENDING.getId());
+        loanApplication.setStatusCode(Statuses.PENDING.getCode());
 
         return Mono.just(loanApplication);
     }

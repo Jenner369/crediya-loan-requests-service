@@ -6,7 +6,6 @@ import co.com.crediya.api.dto.loanapplication.ShortLoanApplicationDTO;
 import co.com.crediya.api.mapper.LoanApplicationDTOMapper;
 import co.com.crediya.api.presentation.contract.DTOValidator;
 import co.com.crediya.api.presentation.contract.RouteHandler;
-import co.com.crediya.api.presentation.contract.UUIDValidator;
 import co.com.crediya.usecase.getuserbyidentitydocument.GetUserByIdentityDocumentUseCase;
 import co.com.crediya.usecase.registerloanapplication.RegisterLoanApplicationUseCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,7 +28,6 @@ public class RegisterLoanApplicationHandlerV1 implements RouteHandler {
     private final RegisterLoanApplicationUseCase registerLoanApplicationUseCase;
     private final GetUserByIdentityDocumentUseCase getUserByIdentityDocumentUseCase;
     private final DTOValidator dtoValidator;
-    private final UUIDValidator uuidValidator;
     private final LoanApplicationDTOMapper mapper;
 
     @Override
@@ -59,11 +57,6 @@ public class RegisterLoanApplicationHandlerV1 implements RouteHandler {
                     log.info("[{}] POST /api/v1/solicitud - Intento de registro", rid);
                 })
                 .flatMap(dtoValidator::validate)
-                .flatMap(dto ->
-                        uuidValidator
-                                .validateExists(dto.loanTypeId())
-                                .thenReturn(dto)
-                )
                 .map(mapper::toModelFromRegisterDTO)
                 .flatMap(loanApplication ->
                         getUserByIdentityDocumentUseCase
