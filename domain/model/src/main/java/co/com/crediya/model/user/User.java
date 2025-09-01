@@ -1,9 +1,5 @@
 package co.com.crediya.model.user;
-import lombok.Builder;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -20,4 +16,5 @@ public class User {
     private String email;
     private String identityDocument;
     private BigDecimal baseSalary;
+    private String roleId;
 }
