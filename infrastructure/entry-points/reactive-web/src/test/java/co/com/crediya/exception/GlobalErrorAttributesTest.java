@@ -1,6 +1,7 @@
 package co.com.crediya.exception;
 
 import co.com.crediya.api.exception.GlobalErrorAttributes;
+import co.com.crediya.api.validation.exception.ForbiddenException;
 import co.com.crediya.api.validation.exception.InvalidUUIDException;
 import co.com.crediya.model.common.exceptions.DomainException;
 import jakarta.validation.ConstraintViolation;
@@ -89,6 +90,17 @@ class GlobalErrorAttributesTest {
 
         assertThat(attrs).containsEntry("status", 500);
     }
+
+    @Test
+    void shouldReturnForbiddenError() {
+        var forbiddenEx = new ForbiddenException("Acceso denegado");
+        var request = buildRequestWithError(forbiddenEx);
+
+        Map<String, Object> attrs = globalErrorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
+
+        assertThat(attrs).containsEntry("status", 403);
+    }
+
 
     static class TestDomainException extends DomainException {
         public TestDomainException(String message) {
