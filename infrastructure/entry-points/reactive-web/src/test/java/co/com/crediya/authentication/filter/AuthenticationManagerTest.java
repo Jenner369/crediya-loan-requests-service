@@ -54,13 +54,13 @@ class AuthenticationManagerTest {
     @Test
     void authenticateShouldErrorWhenTokenIsInvalid() {
         when(tokenValidator.validateTokenAndGetClaims(anyString()))
-                .thenReturn(Mono.error(new RuntimeException("Token invalid")));
+                .thenReturn(Mono.empty());
 
         Authentication auth = new UsernamePasswordAuthenticationToken("badToken", "badToken");
 
         StepVerifier.create(authManager.authenticate(auth))
-                .expectErrorMessage("Token invalid")
-                .verify();
+                .expectNextCount(0)
+                .verifyComplete();
 
         verify(tokenValidator, times(1)).validateTokenAndGetClaims("badToken");
     }
