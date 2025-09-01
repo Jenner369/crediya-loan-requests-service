@@ -1,6 +1,7 @@
 package co.com.crediya.usecase.registerloanapplication;
 
 import co.com.crediya.contract.ReactiveUseCase;
+import co.com.crediya.exception.LoanApplicationOwnerMismatchException;
 import co.com.crediya.exception.LoanTypeNotFoundException;
 import co.com.crediya.model.common.gateways.TransactionalGateway;
 import co.com.crediya.model.loanapplication.LoanApplication;
@@ -11,19 +12,28 @@ import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class RegisterLoanApplicationUseCase implements ReactiveUseCase<LoanApplication, Mono<LoanApplication>> {
+public class RegisterLoanApplicationUseCase implements ReactiveUseCase<RegisterLoanApplicationUseCaseInput, Mono<LoanApplication>> {
 
     private final LoanApplicationRepository loanApplicationRepository;
     private final LoanTypeRepository loanTypeRepository;
     private final TransactionalGateway transactionalGateway;
 
     @Override
-    public Mono<LoanApplication> execute(LoanApplication loanApplication) {
+    public Mono<LoanApplication> execute(RegisterLoanApplicationUseCaseInput input) {
         return transactionalGateway.execute(
-                () -> setDefaultStatus(loanApplication)
+                () -> validateOwnerMismatch(input)
+                        .flatMap(this::setDefaultStatus)
                         .flatMap(this::validateLoanTypeExists)
                         .flatMap(loanApplicationRepository::save)
         );
+    }
+
+    private Mono<LoanApplication> validateOwnerMismatch(RegisterLoanApplicationUseCaseInput input) {
+        if (!input.user().getId().equals(input.authUser().getId())) {
+            return Mono.error(new LoanApplicationOwnerMismatchException());
+        }
+
+        return Mono.just(input.loanApplication());
     }
 
     private Mono<LoanApplication> validateLoanTypeExists(LoanApplication loanApplication) {

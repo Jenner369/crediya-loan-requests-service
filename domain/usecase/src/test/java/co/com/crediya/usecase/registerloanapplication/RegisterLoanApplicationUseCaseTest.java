@@ -7,6 +7,7 @@ import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loantype.enums.LoanTypes;
 import co.com.crediya.model.loantype.gateways.LoanTypeRepository;
 import co.com.crediya.model.status.enums.Statuses;
+import co.com.crediya.model.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +54,15 @@ class RegisterLoanApplicationUseCaseTest {
 
     @Test
     void shouldRegisterLoanApplicationSuccessfully() {
+        var user = User.builder()
+                .id(UUID.randomUUID())
+                .name("Jenner")
+                .lastName("Durand")
+                .email("jennerjose369@gmail.com")
+                .identityDocument("12345678")
+                .baseSalary(new BigDecimal("5000000"))
+                .build();
+
         when(loanApplicationRepository.save(loanApplication)).thenReturn(Mono.just(loanApplication));
         when(loanTypeRepository.existsByCode(LoanTypes.PERSONAL_LOAN.getCode())).thenReturn(Mono.just(true));
         when(transactionalGateway.execute(any()))
@@ -61,7 +71,11 @@ class RegisterLoanApplicationUseCaseTest {
                     return supplier.get();
                 });
 
-        StepVerifier.create(registerLoanApplicationUseCase.execute(loanApplication))
+        StepVerifier.create(registerLoanApplicationUseCase.execute(new RegisterLoanApplicationUseCaseInput(
+                        loanApplication,
+                        user,
+                        user
+                )))
                 .expectNextMatches(u -> u.getIdentityDocument().equals("12345678"))
                 .verifyComplete();
 
@@ -70,6 +84,15 @@ class RegisterLoanApplicationUseCaseTest {
 
     @Test
     void shouldThrowExceptionWhenLoanTypeNotFound() {
+        var user = User.builder()
+                .id(UUID.randomUUID())
+                .name("Jenner")
+                .lastName("Durand")
+                .email("jennerjose369@gmail.com")
+                .identityDocument("12345678")
+                .baseSalary(new BigDecimal("5000000"))
+                .build();
+
         when(loanTypeRepository.existsByCode(LoanTypes.PERSONAL_LOAN.getCode())).thenReturn(Mono.just(false));
         when(transactionalGateway.execute(any()))
                 .thenAnswer(invocation -> {
@@ -77,7 +100,11 @@ class RegisterLoanApplicationUseCaseTest {
                     return supplier.get();
                 });
 
-        StepVerifier.create(registerLoanApplicationUseCase.execute(loanApplication))
+        StepVerifier.create(registerLoanApplicationUseCase.execute(new RegisterLoanApplicationUseCaseInput(
+                        loanApplication,
+                        user,
+                        user
+                )))
                 .expectErrorMatches(LoanTypeNotFoundException.class::isInstance)
                 .verify();
     }
