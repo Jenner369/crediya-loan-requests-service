@@ -8,7 +8,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import reactor.netty.http.client.HttpClient;
 
 import static io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS;
@@ -32,13 +37,31 @@ public class AuthRestConsumerConfig {
             .baseUrl(url)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")
             .clientConnector(getClientHttpConnector())
+            .filter(authorizationHeaderFilter())
             .build();
     }
 
+    private ExchangeFilterFunction authorizationHeaderFilter() {
+        return (request, next) ->
+                ReactiveSecurityContextHolder.getContext()
+                        .map(SecurityContext::getAuthentication)
+                        .filter(Authentication::isAuthenticated)
+                        .flatMap(auth -> {
+                            Object credentials = auth.getCredentials();
+                            if (credentials instanceof String token && !token.isBlank()) {
+                                var newRequest = ClientRequest.from(request)
+                                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                        .build();
+
+                                return next.exchange(newRequest);
+                            }
+
+                            return next.exchange(request);
+                        })
+                        .switchIfEmpty(next.exchange(request));
+    }
+
     private ClientHttpConnector getClientHttpConnector() {
-        /*
-        IF YO REQUIRE APPEND SSL CERTIFICATE SELF SIGNED: this should be in the default cacerts trustore
-        */
         return new ReactorClientHttpConnector(HttpClient.create()
                 .compress(true)
                 .keepAlive(true)

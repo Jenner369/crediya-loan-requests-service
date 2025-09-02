@@ -1,6 +1,6 @@
 package co.com.crediya.api.validation;
 
-import co.com.crediya.api.presentation.contract.DTOValidator;
+import co.com.crediya.api.contract.DTOValidator;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;

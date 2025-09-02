@@ -36,6 +36,8 @@ adapter:
   authrestconsumer:
     timeout: 5000
     url: "http://localhost:8080/api"
+jwt:
+  secret: "superLongSecretKeyChangeMeToAtLeast32Bytes"
 resilience4j:
   circuitbreaker:
     instances:

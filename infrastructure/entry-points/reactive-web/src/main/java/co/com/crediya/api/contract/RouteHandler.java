@@ -1,4 +1,4 @@
-package co.com.crediya.api.presentation.contract;
+package co.com.crediya.api.contract;
 
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;

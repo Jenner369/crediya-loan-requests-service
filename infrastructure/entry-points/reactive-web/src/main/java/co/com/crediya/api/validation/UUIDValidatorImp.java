@@ -1,6 +1,6 @@
 package co.com.crediya.api.validation;
 
-import co.com.crediya.api.presentation.contract.UUIDValidator;
+import co.com.crediya.api.contract.UUIDValidator;
 import co.com.crediya.api.validation.exception.InvalidUUIDException;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;

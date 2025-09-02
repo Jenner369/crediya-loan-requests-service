@@ -1,6 +1,7 @@
 package co.com.crediya.api.exception;
 
 import co.com.crediya.api.dto.common.ErrorResponseDTO;
+import co.com.crediya.api.validation.exception.ForbiddenException;
 import co.com.crediya.api.validation.exception.ValidationException;
 import co.com.crediya.exception.NotFoundException;
 import co.com.crediya.model.common.exceptions.DomainException;
@@ -46,14 +47,15 @@ public class GlobalErrorAttributes extends DefaultErrorAttributes {
             return HttpStatus.UNPROCESSABLE_ENTITY;
         } else if (error instanceof ValidationException) {
             return HttpStatus.UNPROCESSABLE_ENTITY;
+        } else if (error instanceof ForbiddenException) {
+            return HttpStatus.FORBIDDEN;
         } else {
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
     }
 
     private String getErrorMessageByException(Throwable error, ServerRequest request) {
-
-        String errorMessage = "Un error inesperado ha ocurrido";
+        var errorMessage = "Un error inesperado ha ocurrido";
 
         if (error instanceof ConstraintViolationException cve) {
             errorMessage = cve.getConstraintViolations()
@@ -89,6 +91,16 @@ public class GlobalErrorAttributes extends DefaultErrorAttributes {
                     request.method().name(),
                     request.path(),
                     ve.getMessage()
+            );
+        } else if (error instanceof ForbiddenException fe) {
+            errorMessage = fe.getMessage();
+
+            log.warn("[{}] {} {} {}: {}",
+                    request.exchange().getRequest().getId(),
+                    request.method().name(),
+                    request.path(),
+                    fe.getClass().getSimpleName(),
+                    fe.getMessage()
             );
         } else {
             log.error("[{}] Excepción no controlada {} {}: {}",
