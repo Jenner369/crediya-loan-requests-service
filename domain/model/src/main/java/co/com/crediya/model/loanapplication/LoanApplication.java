@@ -1,4 +1,6 @@
 package co.com.crediya.model.loanapplication;
+import co.com.crediya.model.loantype.LoanType;
+import co.com.crediya.model.status.Status;
 import co.com.crediya.model.user.User;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
@@ -22,6 +24,12 @@ public class LoanApplication {
     private String email;
     private String statusCode;
     private String loanTypeCode;
+
+    // Read only
+    private LoanType loanType;
+    private Status status;
+    private User user;
+    private BigDecimal totalMonthlyDebtApproved;
 
     public void setUserDetails(User user) {
         if (user != null) {
