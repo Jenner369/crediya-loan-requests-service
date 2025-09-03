@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.SocketPolicy;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +19,8 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.io.IOException;
+import java.util.List;
+
 import static org.mockito.Mockito.*;
 
 class UserRestConsumerTest {
@@ -31,7 +34,7 @@ class UserRestConsumerTest {
         mockBackEnd = new MockWebServer();
         mockBackEnd.start();
 
-        var webClient = WebClient.builder().baseUrl(mockBackEnd.url("/v1/usuarios").toString()).build();
+        var webClient = WebClient.builder().baseUrl(mockBackEnd.url("/").toString()).build();
         var objectMapper = new ObjectMapper();
         var registry = CircuitBreakerRegistry.ofDefaults();
 
@@ -116,8 +119,8 @@ class UserRestConsumerTest {
 
     @Test
     @DisplayName("findByIdentityDocument should trigger fallback when circuit breaker is open")
-    void testFindByIdentityDocumentFallback() throws IOException {
-        mockBackEnd.shutdown();
+    void testFindByIdentityDocumentFallback() {
+        mockBackEnd.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START));
 
         StepVerifier.create(userRestConsumer.findByIdentityDocument("any"))
                 .expectNextCount(0)
@@ -135,6 +138,55 @@ class UserRestConsumerTest {
                 .setBody(invalidJson));
 
         StepVerifier.create(userRestConsumer.findByIdentityDocument("parse-error"))
+                .expectNextCount(0)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("findAllByIdentityDocuments should return empty on 500 with valid ErrorResponseDTO")
+    void testFindAllByIdentityDocumentsServerErrorWithValidErrorResponseDTO() {
+        String responseBody = """
+            {
+                "timestamp": "2024-10-10T10:00:00Z",
+                "status": 500,
+                "error": "Internal Server Error",
+                "message": "Unexpected error in AuthService",
+                "path": "/v1/usuarios/identity-documents",
+                "requestId": "req-98765"
+            }
+        """;
+
+        mockBackEnd.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .setBody(responseBody));
+
+        StepVerifier.create(userRestConsumer.findAllByIdentityDocuments(List.of("12345678", "87654321")))
+                .expectNextCount(0)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("findAllByIdentityDocuments should return empty on 500 with invalid error body")
+    void testFindAllByIdentityDocumentsServerErrorWithInvalidErrorResponseDTO() {
+        String invalidJson = "{ invalid-json-response }";
+
+        mockBackEnd.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .setBody(invalidJson));
+
+        StepVerifier.create(userRestConsumer.findAllByIdentityDocuments(List.of("11111111", "22222222")))
+                .expectNextCount(0)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("findAllByIdentityDocuments should trigger fallback when circuit breaker is open")
+    void testFindAllByIdentityDocumentsFallback() {
+        mockBackEnd.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START));
+
+        StepVerifier.create(userRestConsumer.findAllByIdentityDocuments(List.of("12345678", "87654321")))
                 .expectNextCount(0)
                 .verifyComplete();
     }
