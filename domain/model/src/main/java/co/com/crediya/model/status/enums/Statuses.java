@@ -1,5 +1,6 @@
 package co.com.crediya.model.status.enums;
 
+import co.com.crediya.model.status.Status;
 import lombok.Getter;
 
 @Getter
@@ -28,5 +29,13 @@ public enum Statuses {
         this.code = code;
         this.name = name;
         this.description = description;
+    }
+
+    public Status toModel() {
+        return Status.builder()
+                .code(this.code)
+                .name(this.name)
+                .description(this.description)
+                .build();
     }
 }

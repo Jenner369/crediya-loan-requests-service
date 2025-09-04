@@ -1,6 +1,8 @@
 package co.com.crediya.api.presentation.loanapplication.v1;
 
+import co.com.crediya.api.presentation.loanapplication.v1.handler.ListLoanApplicationsWithDetailsHandlerV1;
 import co.com.crediya.api.presentation.loanapplication.v1.handler.RegisterLoanApplicationHandlerV1;
+import co.com.crediya.usecase.listloanapplicationswithdetails.ListLoanApplicationsWithDetailsUseCaseInput;
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
@@ -19,14 +21,23 @@ public class LoanApplicationRouterV1 {
             beanClass = RegisterLoanApplicationHandlerV1.class,
             beanMethod = "handle",
             method = RequestMethod.POST
+        ),
+        @RouterOperation(
+            path = "/api/v1/solicitud",
+            beanClass = ListLoanApplicationsWithDetailsHandlerV1.class,
+            beanMethod = "handle",
+            method = RequestMethod.GET
         )
     })
-    public RouterFunction<ServerResponse> routerFunction(RegisterLoanApplicationHandlerV1 registerLoanApplicationHandlerV1) {
+    public RouterFunction<ServerResponse> routerFunction(
+            RegisterLoanApplicationHandlerV1 registerLoanApplicationHandlerV1,
+            ListLoanApplicationsWithDetailsHandlerV1 listLoanApplicationsWithDetailsHandlerV1
+    ) {
         return RouterFunctions
             .route()
-            .path("/api/v1/solicitud", builder -> {
-                builder.POST("", registerLoanApplicationHandlerV1::handle);
-            })
+            .path("/api/v1/solicitud", builder -> builder
+                    .GET("", listLoanApplicationsWithDetailsHandlerV1::handle)
+                    .POST("", registerLoanApplicationHandlerV1::handle))
             .build();
         }
 }

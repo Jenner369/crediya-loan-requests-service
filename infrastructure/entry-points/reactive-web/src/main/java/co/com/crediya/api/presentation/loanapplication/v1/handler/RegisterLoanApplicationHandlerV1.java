@@ -56,11 +56,13 @@ public class RegisterLoanApplicationHandlerV1 implements RouteHandler {
             content = @Content(schema = @Schema(implementation = ShortLoanApplicationDTO.class)))
     @ApiResponse(responseCode = "400", description = "Error de dominio",
             content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
-    @ApiResponse(responseCode = "422", description = "Error de validación",
+    @ApiResponse(responseCode = "401", description = "No autorizado",
+            content = @Content(schema = @Schema))
+    @ApiResponse(responseCode = "403", description = "Prohibido",
             content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Recurso no encontrados",
             content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
-    @ApiResponse(responseCode = "403", description = "Prohibido",
+    @ApiResponse(responseCode = "422", description = "Error de validación",
             content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Error interno del servidor",
             content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
@@ -84,7 +86,7 @@ public class RegisterLoanApplicationHandlerV1 implements RouteHandler {
 
     private Mono<ServerResponse> processRequest(ServerRequest request, User authUser) {
         return request.bodyToMono(RegisterLoanApplicationDTO.class)
-                .flatMap(dto -> roleValidator.validateRole(Roles.CLIENT).then(Mono.just(dto)))
+                .flatMap(dto -> roleValidator.validateRole(Roles.CLIENT).thenReturn(dto))
                 .flatMap(dtoValidator::validate)
                 .doOnNext(user -> {
                     var rid = request.exchange().getRequest().getId();

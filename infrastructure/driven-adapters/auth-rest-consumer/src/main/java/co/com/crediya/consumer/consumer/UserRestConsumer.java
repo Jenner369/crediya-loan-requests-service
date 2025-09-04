@@ -1,6 +1,7 @@
 package co.com.crediya.consumer.consumer;
 
 import co.com.crediya.consumer.dto.common.ErrorResponseDTO;
+import co.com.crediya.consumer.dto.listusersbyidentitydocuments.SearchListUsersByIdentityDocumentsDTO;
 import co.com.crediya.model.user.User;
 import co.com.crediya.model.user.gateways.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,7 +14,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Service
 @Slf4j
@@ -49,6 +53,20 @@ public class UserRestConsumer implements UserRepository {
                 .onErrorResume(ex -> findUserByIdentityDocumentFallback(identityDocument, ex));
     }
 
+    @Override
+    public Flux<User> findAllByIdentityDocuments(List<String> identityDocuments) {
+        var path = BASE_PATH + "/identity-documents";
+
+        return webClient
+                .post()
+                .uri(path)
+                .bodyValue(new SearchListUsersByIdentityDocumentsDTO(identityDocuments))
+                .retrieve()
+                .bodyToFlux(User.class)
+                .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
+                .onErrorResume(ex -> findAllUsersByIdentityDocumentsFallback(identityDocuments, ex));
+    }
+
     public Mono<User> findUserByIdentityDocumentFallback(String identityDocument, Throwable ex) {
         var path = BASE_PATH + "/identity-document/" + identityDocument;
 
@@ -80,6 +98,33 @@ public class UserRestConsumer implements UserRepository {
         return Mono.empty();
     }
 
+    public Flux<User> findAllUsersByIdentityDocumentsFallback(List<String> identityDocuments, Throwable ex) {
+        var path = BASE_PATH + "/identity-documents";
+
+        if (ex instanceof WebClientResponseException wcre) {
+            log.warn("[{}] ExternalUserNotFound - status {} {} {}: No se encontraron usuarios en AuthService con los documentos {}",
+                    getClass().getSimpleName(),
+                    wcre.getStatusCode().value(),
+                    "POST",
+                    path,
+                    identityDocuments
+            );
+
+            handleExternalError(wcre, path);
+        } else {
+            log.error("[{}] Error inesperado al consumir AuthService: {} {}: {}",
+                    getClass().getSimpleName(),
+                    "POST",
+                    path,
+                    ex.getMessage(),
+                    ex
+            );
+            return Flux.empty();
+        }
+
+        return Flux.empty();
+    }
+
     private void handleExternalError(WebClientResponseException wcre, String path) {
         var externalMessage = "No se pudo obtener detalle del error";
 
@@ -104,10 +149,5 @@ public class UserRestConsumer implements UserRepository {
                     parseEx.getMessage()
             );
         }
-    }
-
-    private String maskToken(String token) {
-        if (token == null) return "null";
-        return token.substring(0, Math.min(10, token.length())) + "...";
     }
 }
