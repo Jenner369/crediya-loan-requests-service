@@ -1,23 +1,23 @@
 server:
-  port: 8081
+  port: 8080
 spring:
   application:
     name: "CrediYALoanRequestsService"
   devtools:
     add-properties: false
   flyway:
-    url: "jdbc:mysql://localhost:3307/crediya_loan_requests"
-    user: "crediya_loan_requests_user"
-    password: "crediya_loan_requests_pass"
-    locations: "classpath:db/migration"
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    user: ${DB_USER}
+    password: ${DB_PASS}
+    locations: classpath:db/migration
     baseline-on-migrate: true
 adapters:
   r2dbc:
-    host: "localhost"
-    port: 3307
-    database: "crediya_loan_requests"
-    username: "crediya_loan_requests_user"
-    password: "crediya_loan_requests_pass"
+    host: ${DB_HOST}
+    port: ${DB_PORT}
+    database: ${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASS}
 management:
   endpoints:
     web:
@@ -31,13 +31,13 @@ management:
     circuitbreakers:
       enabled: true
 cors:
-  allowed-origins: "http://localhost:4200,http://localhost:8080"
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
 adapter:
   authrestconsumer:
     timeout: 5000
-    url: "http://localhost:8080/api"
+    url: ${AUTH_SERVICE_URL}/api
 jwt:
-  secret: "superLongSecretKeyChangeMeToAtLeast32Bytes"
+  secret: ${JWT_SECRET}
 resilience4j:
   circuitbreaker:
     instances:
