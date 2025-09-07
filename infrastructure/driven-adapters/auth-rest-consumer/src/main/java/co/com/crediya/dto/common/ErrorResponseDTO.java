@@ -1,4 +1,4 @@
-package co.com.crediya.consumer.dto.common;
+package co.com.crediya.dto.common;
 
 import java.util.Date;
 

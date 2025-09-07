@@ -1,7 +1,7 @@
-package co.com.crediya.consumer.consumer;
+package co.com.crediya.consumer;
 
-import co.com.crediya.consumer.dto.common.ErrorResponseDTO;
-import co.com.crediya.consumer.dto.listusersbyidentitydocuments.SearchListUsersByIdentityDocumentsDTO;
+import co.com.crediya.dto.common.ErrorResponseDTO;
+import co.com.crediya.dto.listusersbyidentitydocuments.SearchListUsersByIdentityDocumentsDTO;
 import co.com.crediya.model.user.User;
 import co.com.crediya.model.user.gateways.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
