@@ -46,8 +46,7 @@ class LoanApplicationReactiveRepositoryAdapterTest {
                     "12345678",
                     "jennerjose369@gmail.com",
                     Statuses.PENDING.getCode(),
-                    LoanTypes.BUSINESS_LOAN.getCode(),
-                    LocalDateTime.now()
+                    LoanTypes.BUSINESS_LOAN.getCode()
             );
 
     private final LoanApplicationWithDetails sampleLoanApplicationProjection =

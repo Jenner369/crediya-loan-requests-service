@@ -9,7 +9,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Table("loan_applications")
@@ -26,5 +25,4 @@ public class LoanApplicationEntity implements HasUUID {
     private String email;
     private String statusCode;
     private String loanTypeCode;
-    private LocalDateTime createdAt;
 }
