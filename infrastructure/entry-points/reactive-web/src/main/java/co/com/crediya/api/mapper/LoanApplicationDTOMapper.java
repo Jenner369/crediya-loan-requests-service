@@ -1,11 +1,9 @@
 package co.com.crediya.api.mapper;
 
-import co.com.crediya.api.dto.loanapplication.LoanApplicationDTO;
-import co.com.crediya.api.dto.loanapplication.RegisterLoanApplicationDTO;
-import co.com.crediya.api.dto.loanapplication.SearchLoanApplicationDTO;
-import co.com.crediya.api.dto.loanapplication.ShortLoanApplicationDTO;
+import co.com.crediya.api.dto.loanapplication.*;
 import co.com.crediya.common.PageRequest;
 import co.com.crediya.model.loanapplication.LoanApplication;
+import co.com.crediya.usecase.changeloanapplicationstatus.ChangeLoanApplicationStatusUseCaseInput;
 import co.com.crediya.usecase.listloanapplicationswithdetails.ListLoanApplicationsWithDetailsUseCaseInput;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -21,6 +19,8 @@ public interface LoanApplicationDTOMapper {
     ListLoanApplicationsWithDetailsUseCaseInput toListInputFromSearchDTO(SearchLoanApplicationDTO dto);
 
     LoanApplicationDTO toDTOFromModel(LoanApplication loanApplication);
+
+    ChangeLoanApplicationStatusUseCaseInput toChangeStatusInputFromDTO(ChangeLoanApplicationStatusDTO dto);
 
     // Utilities
     @Named("toPageRequestFromSearchDTO")

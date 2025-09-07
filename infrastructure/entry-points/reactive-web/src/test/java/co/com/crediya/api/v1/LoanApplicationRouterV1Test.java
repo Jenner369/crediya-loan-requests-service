@@ -3,11 +3,9 @@ package co.com.crediya.api.v1;
 import co.com.crediya.api.authentication.filter.AuthUserDetails;
 import co.com.crediya.api.contract.DTOValidator;
 import co.com.crediya.api.contract.RoleValidator;
+import co.com.crediya.api.contract.UUIDValidator;
 import co.com.crediya.api.dto.common.PaginationHeaders;
-import co.com.crediya.api.dto.loanapplication.LoanApplicationDTO;
-import co.com.crediya.api.dto.loanapplication.RegisterLoanApplicationDTO;
-import co.com.crediya.api.dto.loanapplication.SearchLoanApplicationDTO;
-import co.com.crediya.api.dto.loanapplication.ShortLoanApplicationDTO;
+import co.com.crediya.api.dto.loanapplication.*;
 import co.com.crediya.api.dto.loantype.LoanTypeDTO;
 import co.com.crediya.api.dto.status.StatusDTO;
 import co.com.crediya.api.dto.user.UserDTO;
@@ -15,6 +13,7 @@ import co.com.crediya.api.exception.GlobalErrorAttributes;
 import co.com.crediya.api.exception.GlobalExceptionHandler;
 import co.com.crediya.api.mapper.LoanApplicationDTOMapper;
 import co.com.crediya.api.presentation.loanapplication.v1.LoanApplicationRouterV1;
+import co.com.crediya.api.presentation.loanapplication.v1.handler.ChangeLoanApplicationStatusHandlerV1;
 import co.com.crediya.api.presentation.loanapplication.v1.handler.ListLoanApplicationsWithDetailsHandlerV1;
 import co.com.crediya.api.presentation.loanapplication.v1.handler.RegisterLoanApplicationHandlerV1;
 import co.com.crediya.api.validation.exception.ForbiddenException;
@@ -26,6 +25,8 @@ import co.com.crediya.model.loantype.enums.LoanTypes;
 import co.com.crediya.model.role.enums.Roles;
 import co.com.crediya.model.status.enums.Statuses;
 import co.com.crediya.model.user.User;
+import co.com.crediya.usecase.changeloanapplicationstatus.ChangeLoanApplicationStatusUseCase;
+import co.com.crediya.usecase.changeloanapplicationstatus.ChangeLoanApplicationStatusUseCaseInput;
 import co.com.crediya.usecase.getuserbyidentitydocument.GetUserByIdentityDocumentUseCase;
 import co.com.crediya.usecase.listloanapplicationswithdetails.ListLoanApplicationsWithDetailsUseCase;
 import co.com.crediya.usecase.listloanapplicationswithdetails.ListLoanApplicationsWithDetailsUseCaseInput;
@@ -59,7 +60,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication;
 
 @ContextConfiguration(classes = {
@@ -68,6 +69,7 @@ import static org.springframework.security.test.web.reactive.server.SecurityMock
         LoanApplicationRouterV1.class,
         RegisterLoanApplicationHandlerV1.class,
         ListLoanApplicationsWithDetailsHandlerV1.class,
+        ChangeLoanApplicationStatusHandlerV1.class,
         LoanApplicationRouterV1Test.TestConfig.class,
         LoanApplicationRouterV1Test.TestSecurityConfig.class
 })
@@ -87,7 +89,13 @@ class LoanApplicationRouterV1Test {
     private ListLoanApplicationsWithDetailsUseCase listLoanApplicationsWithDetailsUseCase;
 
     @MockitoBean
+    private ChangeLoanApplicationStatusUseCase changeLoanApplicationStatusUseCase;
+
+    @MockitoBean
     private DTOValidator dtoValidator;
+
+    @MockitoBean
+    private UUIDValidator uuidValidator;
 
     @MockitoBean
     private RoleValidator roleValidator;
@@ -387,4 +395,39 @@ class LoanApplicationRouterV1Test {
                         .isEqualTo(identityDocument));
     }
 
+    @Test
+    void testChangeLoanApplicationStatusSuccess() {
+        var loanApplicationId = UUID.randomUUID();
+        var dto = new ChangeLoanApplicationStatusDTO(
+                loanApplicationId.toString(),
+                Statuses.APPROVED.getCode()
+        );
+
+        var useCaseInput = new ChangeLoanApplicationStatusUseCaseInput(
+                loanApplicationId,
+                Statuses.APPROVED.getCode()
+        );
+
+        var loanApplication = LoanApplication.builder()
+                .id(loanApplicationId)
+                .statusCode(Statuses.APPROVED.getCode())
+                .build();
+
+        when(dtoValidator.validate(dto)).thenReturn(Mono.just(dto));
+        when(uuidValidator.validate(loanApplicationId.toString())).thenReturn(Mono.empty());
+        when(roleValidator.validateRole(Roles.ADVISOR)).thenReturn(Mono.empty());
+        when(mapper.toChangeStatusInputFromDTO(dto)).thenReturn(useCaseInput);
+        when(changeLoanApplicationStatusUseCase.execute(useCaseInput)).thenReturn(Mono.just(loanApplication));
+
+        webTestClient.put()
+                .uri("/api/v1/solicitud")
+                .bodyValue(dto)
+                .exchange()
+                .expectStatus().isOk();
+
+        verify(dtoValidator).validate(dto);
+        verify(uuidValidator).validate(loanApplicationId.toString());
+        verify(roleValidator).validateRole(Roles.ADVISOR);
+        verify(changeLoanApplicationStatusUseCase).execute(useCaseInput);
+    }
 }
