@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class LoanApplicationTest {
     @Test
@@ -89,5 +90,56 @@ class LoanApplicationTest {
         } catch (Exception e) {
             assertThat(e).isInstanceOf(CannotChangeLoanApplicationStatusException.class);
         }
+    }
+
+    @Test
+    void shouldApproveLoan() {
+        LoanApplication loan = new LoanApplication();
+        loan.setStatusCode(Statuses.PENDING.getCode());
+
+        loan.approve();
+
+        assertThat(loan.getStatusCode()).isEqualTo(Statuses.APPROVED.getCode());
+    }
+
+    @Test
+    void shouldRejectLoan() {
+        LoanApplication loan = new LoanApplication();
+        loan.setStatusCode(Statuses.PENDING.getCode());
+
+        loan.reject();
+
+        assertThat(loan.getStatusCode()).isEqualTo(Statuses.REJECTED.getCode());
+    }
+
+    @Test
+    void shouldMarkAsManualReview() {
+        LoanApplication loan = new LoanApplication();
+        loan.setStatusCode(Statuses.PENDING.getCode());
+
+        loan.markAsManualReview();
+
+        assertThat(loan.getStatusCode()).isEqualTo(Statuses.MANUAL_REVIEW.getCode());
+    }
+
+    @Test
+    void shouldChangeStatusFromDecisionToManualReview() {
+        LoanApplication loan = new LoanApplication();
+        loan.setStatusCode(Statuses.PENDING.getCode());
+
+        loan.changeStatusFromDecision(Statuses.MANUAL_REVIEW.getCode());
+
+        assertThat(loan.getStatusCode()).isEqualTo(Statuses.MANUAL_REVIEW.getCode());
+    }
+
+    @Test
+    void shouldNotAllowChangeFromDecisionIfStatusIsNotPending() {
+        LoanApplication loan = new LoanApplication();
+        loan.setStatusCode(Statuses.APPROVED.getCode());
+        var manualReviewStatusCode = Statuses.MANUAL_REVIEW.getCode();
+
+        assertThatThrownBy(() ->
+                loan.validateCanChangeStatusFromDecision(manualReviewStatusCode)
+        ).isInstanceOf(CannotChangeLoanApplicationStatusException.class);
     }
 }

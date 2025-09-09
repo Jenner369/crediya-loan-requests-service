@@ -50,6 +50,11 @@ public class LoanApplication {
         this.statusCode = Statuses.REJECTED.getCode();
     }
 
+    public void markAsManualReview() {
+        this.statusCode = Statuses.MANUAL_REVIEW.getCode();
+    }
+
+    // From PENDING to APPROVED or REJECTED (Advisor Process)
     private Boolean canChangeStatus(String newStatusCode) {
         return (Statuses.isApproved(newStatusCode)
                 || Statuses.isRejected(newStatusCode))
@@ -81,5 +86,31 @@ public class LoanApplication {
                 user.getName(),
                 user.getLastName()
         );
+    }
+
+    // From PENDING to APPROVED, REJECTED or MANUAL_REVIEW (Auto Approval Process)
+    private Boolean canChangeStatusFromDecision(String newStatusCode) {
+        return (Statuses.isApproved(newStatusCode)
+                || Statuses.isRejected(newStatusCode)
+                || Statuses.isManualReview(newStatusCode))
+                && Statuses.PENDING.getCode().equals(statusCode);
+    }
+
+    public void validateCanChangeStatusFromDecision(String newStatusCode) {
+        if (Boolean.FALSE.equals(canChangeStatusFromDecision(newStatusCode))) {
+            throw new CannotChangeLoanApplicationStatusException();
+        }
+    }
+
+    public void changeStatusFromDecision(String newStatusCode) {
+        if (Boolean.TRUE.equals(Statuses.isApproved(newStatusCode))) {
+            approve();
+        } else if (Boolean.TRUE.equals(Statuses.isRejected(newStatusCode))) {
+            reject();
+        } else if (Boolean.TRUE.equals(Statuses.isManualReview(newStatusCode))) {
+            markAsManualReview();
+        } else {
+            throw new InvalidStatusForLoanApplicationException();
+        }
     }
 }
