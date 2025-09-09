@@ -1,5 +1,7 @@
 package co.com.crediya.sqs.listener;
 
+import co.com.crediya.model.loanapplication.LoanApplication;
+import co.com.crediya.model.loanapplication.exceptions.CannotChangeLoanApplicationStatusException;
 import co.com.crediya.usecase.applyloanapplicationdecision.ApplyLoanApplicationDecisionUseCase;
 import co.com.crediya.usecase.applyloanapplicationdecision.ApplyLoanApplicationDecisionUseCaseInput;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +26,18 @@ public class SQSProcessor implements Function<Message, Mono<Void>> {
                 .doOnError(e -> log.error("Error converting message to input: {}", e.getMessage()))
                 .flatMap(applyLoanApplicationDecisionUseCase::execute)
                 .doOnSuccess(result -> log.info("Message processed successfully: {}", result))
-                .doOnError(e -> log.error("Error processing message: {}", e.getMessage()))
+                .onErrorResume(e -> handleError(e, message))
                 .then();
+    }
+
+    private Mono<LoanApplication> handleError(Throwable e, Message message) {
+        if (e instanceof CannotChangeLoanApplicationStatusException) {
+            log.warn("Controlled business exception: {}. Skipping message {}", e.getMessage(), message.messageId());
+
+            return Mono.empty();
+        }
+        log.error("Unexpected error processing message {}: {}", message.messageId(), e.getMessage(), e);
+
+        return Mono.error(e);
     }
 }
