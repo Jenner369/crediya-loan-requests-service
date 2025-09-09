@@ -38,7 +38,8 @@ adapter:
     url: "${AUTH_SERVICE_URL}/api"
   sqs:
     region: "${AWS_DEFAULT_REGION}"
-    queueUrl: "${AWS_SQS_QUEUE_URL}"
+    changedQueueUrl: "${AWS_SQS_LOAN_APPLICATIONS_CHANGES_QUEUE_URL}"
+    validationQueueUrl: "${AWS_SQS_LOAN_APPLICATIONS_VALIDATIONS_QUEUE_URL}"
 jwt:
   secret: "${JWT_SECRET}"
 resilience4j:
@@ -62,3 +63,11 @@ resilience4j:
         slidingWindowSize: 10
         minimumNumberOfCalls: 10
         waitDurationInOpenState: "10s"
+entrypoint:
+  sqs:
+    region: "${AWS_DEFAULT_REGION}"
+    validationResultsQueueUrl: "${AWS_SQS_LOAN_APPLICATIONS_VALIDATION_RESULTS_QUEUE_URL}"
+    waitTimeSeconds: 20
+    maxNumberOfMessages: 10
+    visibilityTimeoutSeconds: 10
+    numberOfThreads: 1
