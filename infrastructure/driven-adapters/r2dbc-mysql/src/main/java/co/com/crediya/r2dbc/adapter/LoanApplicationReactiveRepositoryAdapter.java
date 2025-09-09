@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Repository
@@ -63,6 +64,14 @@ public class LoanApplicationReactiveRepositoryAdapter extends ReactiveAdapterOpe
                 statusCode,
                 loanTypeCode,
                 autoApproval
+        );
+    }
+
+    @Override
+    public Mono<BigDecimal> getTotalMonthlyDebtApprovedFromLoanApplicationById(UUID id, String approvedStatus) {
+        return repository.getTotalMonthlyDebtApprovedFromLoanApplicationById(
+                id,
+                approvedStatus
         );
     }
 }

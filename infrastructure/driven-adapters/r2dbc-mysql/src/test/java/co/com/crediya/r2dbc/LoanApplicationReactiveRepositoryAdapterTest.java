@@ -150,4 +150,17 @@ class LoanApplicationReactiveRepositoryAdapterTest {
                 .expectNext(5L)
                 .verifyComplete();
     }
+
+    @Test
+    void mustGetTotalMonthlyDebtApprovedFromLoanApplicationById() {
+        var sampleUUID = UUID.randomUUID();
+        when(repository.getTotalMonthlyDebtApprovedFromLoanApplicationById(sampleUUID, Statuses.APPROVED.getCode()))
+                .thenReturn(Mono.just(new BigDecimal("50000")));
+
+        var result = repositoryAdapter.getTotalMonthlyDebtApprovedFromLoanApplicationById(sampleUUID, Statuses.APPROVED.getCode());
+
+        StepVerifier.create(result)
+                .expectNext(new BigDecimal("50000"))
+                .verifyComplete();
+    }
 }
