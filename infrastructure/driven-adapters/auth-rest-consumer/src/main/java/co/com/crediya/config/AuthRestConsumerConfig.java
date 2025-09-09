@@ -1,4 +1,4 @@
-package co.com.crediya.consumer.config;
+package co.com.crediya.config;
 
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;

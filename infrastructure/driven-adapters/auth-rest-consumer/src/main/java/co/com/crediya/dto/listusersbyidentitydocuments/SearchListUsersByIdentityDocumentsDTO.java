@@ -1,4 +1,4 @@
-package co.com.crediya.consumer.dto.listusersbyidentitydocuments;
+package co.com.crediya.dto.listusersbyidentitydocuments;
 
 import java.util.List;
 

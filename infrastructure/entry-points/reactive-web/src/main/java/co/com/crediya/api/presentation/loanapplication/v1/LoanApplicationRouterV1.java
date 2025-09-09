@@ -1,5 +1,6 @@
 package co.com.crediya.api.presentation.loanapplication.v1;
 
+import co.com.crediya.api.presentation.loanapplication.v1.handler.ChangeLoanApplicationStatusHandlerV1;
 import co.com.crediya.api.presentation.loanapplication.v1.handler.ListLoanApplicationsWithDetailsHandlerV1;
 import co.com.crediya.api.presentation.loanapplication.v1.handler.RegisterLoanApplicationHandlerV1;
 import co.com.crediya.usecase.listloanapplicationswithdetails.ListLoanApplicationsWithDetailsUseCaseInput;
@@ -27,17 +28,26 @@ public class LoanApplicationRouterV1 {
             beanClass = ListLoanApplicationsWithDetailsHandlerV1.class,
             beanMethod = "handle",
             method = RequestMethod.GET
+        ),
+        @RouterOperation(
+            path = "/api/v1/solicitud",
+            beanClass = ChangeLoanApplicationStatusHandlerV1.class,
+            beanMethod = "handle",
+            method = RequestMethod.PUT
         )
     })
     public RouterFunction<ServerResponse> routerFunction(
             RegisterLoanApplicationHandlerV1 registerLoanApplicationHandlerV1,
-            ListLoanApplicationsWithDetailsHandlerV1 listLoanApplicationsWithDetailsHandlerV1
+            ListLoanApplicationsWithDetailsHandlerV1 listLoanApplicationsWithDetailsHandlerV1,
+            ChangeLoanApplicationStatusHandlerV1 changeLoanApplicationStatusHandlerV1
     ) {
         return RouterFunctions
             .route()
             .path("/api/v1/solicitud", builder -> builder
                     .GET("", listLoanApplicationsWithDetailsHandlerV1::handle)
-                    .POST("", registerLoanApplicationHandlerV1::handle))
+                    .POST("", registerLoanApplicationHandlerV1::handle)
+                    .PUT("", changeLoanApplicationStatusHandlerV1::handle)
+            )
             .build();
         }
 }

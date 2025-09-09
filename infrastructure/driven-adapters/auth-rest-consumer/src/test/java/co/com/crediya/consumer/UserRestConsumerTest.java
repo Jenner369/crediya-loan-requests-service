@@ -1,7 +1,6 @@
 package co.com.crediya.consumer;
 
 
-import co.com.crediya.consumer.consumer.UserRestConsumer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import okhttp3.mockwebserver.MockResponse;
@@ -15,13 +14,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.io.IOException;
 import java.util.List;
-
-import static org.mockito.Mockito.*;
 
 class UserRestConsumerTest {
 

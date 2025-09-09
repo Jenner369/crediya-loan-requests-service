@@ -61,4 +61,14 @@ public enum LoanTypes {
     public LoanType toModel() {
         return new LoanType(code, name, minAmount, maxAmount, interestRate, autoApproval);
     }
+
+    public static LoanType fromCode(String code) {
+        for (LoanTypes loanType : values()) {
+            if (loanType.getCode().equals(code)) {
+                return loanType.toModel();
+            }
+        }
+
+        return null;
+    }
 }

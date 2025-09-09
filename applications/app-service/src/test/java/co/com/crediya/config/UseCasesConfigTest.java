@@ -1,6 +1,7 @@
 package co.com.crediya.config;
 
 import co.com.crediya.model.common.gateways.TransactionalGateway;
+import co.com.crediya.model.loanapplication.gateways.LoanApplicationEventPublisher;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loantype.gateways.LoanTypeRepository;
 import co.com.crediya.model.user.gateways.UserRepository;
@@ -52,6 +53,11 @@ public class UseCasesConfigTest {
         @Bean
         public TransactionalGateway transactionalGateway() {
             return mock(TransactionalGateway.class);
+        }
+
+        @Bean
+        public LoanApplicationEventPublisher loanApplicationEventPublisher() {
+            return mock(LoanApplicationEventPublisher.class);
         }
 
         @Bean

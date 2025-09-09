@@ -38,4 +38,22 @@ public enum Statuses {
                 .description(this.description)
                 .build();
     }
+
+    public static Status fromCode(String code) {
+        for (Statuses status : Statuses.values()) {
+            if (status.getCode().equals(code)) {
+                return status.toModel();
+            }
+        }
+
+        return null;
+    }
+
+    public static Boolean isApproved(String statusCode) {
+        return APPROVED.getCode().equals(statusCode);
+    }
+
+    public static Boolean isRejected(String statusCode) {
+        return REJECTED.getCode().equals(statusCode);
+    }
 }
