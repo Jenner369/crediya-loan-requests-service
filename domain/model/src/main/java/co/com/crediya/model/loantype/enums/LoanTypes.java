@@ -15,7 +15,7 @@ public enum LoanTypes {
             "Préstamo personal",
             new BigDecimal("1000.00"),
             new BigDecimal("20000.00"),
-            new BigDecimal("12.5"),
+            new BigDecimal("0.13"),
             true
     ),
     MORTGAGE_LOAN(
@@ -23,7 +23,7 @@ public enum LoanTypes {
             "Préstamo hipotecario",
             new BigDecimal("20000.00"),
             new BigDecimal("300000.00"),
-            new BigDecimal("7.0"),
+            new BigDecimal("0.7"),
             false
     ),
     CAR_LOAN(
@@ -31,7 +31,7 @@ public enum LoanTypes {
             "Préstamo vehicular",
             new BigDecimal("5000.00"),
             new BigDecimal("100000.00"),
-            new BigDecimal("9.8"),
+            new BigDecimal("0.98"),
             true
     ),
     STUDENT_LOAN(
@@ -39,7 +39,7 @@ public enum LoanTypes {
             "Préstamo estudiantil",
             new BigDecimal("1000.00"),
             new BigDecimal("50000.00"),
-            new BigDecimal("5.5"),
+            new BigDecimal("0.55"),
             false
     ),
     BUSINESS_LOAN(
@@ -47,7 +47,7 @@ public enum LoanTypes {
             "Préstamo empresarial",
             new BigDecimal("10000.00"),
             new BigDecimal("500000.00"),
-            new BigDecimal("10.2"),
+            new BigDecimal("0.15"),
             false
     );
 

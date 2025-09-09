@@ -4,6 +4,7 @@ import co.com.crediya.model.loanapplication.LoanApplication;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 public interface LoanApplicationRepository {
@@ -23,4 +24,5 @@ public interface LoanApplicationRepository {
             String statusCode,
             String loanTypeCode,
             Boolean autoApproval);
+    Mono<BigDecimal> getTotalMonthlyDebtApprovedFromLoanApplicationById(UUID id, String approvedStatus);
 }

@@ -19,6 +19,11 @@ public enum Statuses {
             "rejected",
             "Rechazado",
             "Cliente no aprobado para el préstamo"
+    ),
+    MANUAL_REVIEW(
+            "manual_review",
+            "Revisión Manual",
+            "Solicitud que requiere revisión manual adicional"
     );
 
     private final String code;
@@ -55,5 +60,9 @@ public enum Statuses {
 
     public static Boolean isRejected(String statusCode) {
         return REJECTED.getCode().equals(statusCode);
+    }
+
+    public static Boolean isManualReview(String statusCode) {
+        return MANUAL_REVIEW.getCode().equals(statusCode);
     }
 }

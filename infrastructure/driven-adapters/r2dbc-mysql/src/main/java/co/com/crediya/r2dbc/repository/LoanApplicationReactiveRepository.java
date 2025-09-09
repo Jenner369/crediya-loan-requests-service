@@ -9,6 +9,7 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 public interface LoanApplicationReactiveRepository extends
@@ -28,14 +29,23 @@ public interface LoanApplicationReactiveRepository extends
         la.loan_type_code AS loan_type_code,
         lt.name AS loan_type_name,
         lt.interest_rate AS loan_type_interest_rate,
-         (
-             SELECT COALESCE(SUM(sub.amount / sub.term), 0)
-             FROM loan_applications sub
-             WHERE sub.identity_document = la.identity_document
-               AND sub.status_code = :approvedStatus
-               AND sub.id <> la.id
-               AND sub.created_at < la.created_at
-         ) AS total_monthly_debt_approved
+        (
+            SELECT COALESCE(
+                SUM(
+                    sub.amount * (
+                        ( (sub_lt.interest_rate/12) * POWER(1 + (sub_lt.interest_rate/12), sub.term) )
+                        /
+                        (POWER(1 + (sub_lt.interest_rate/12), sub.term) - 1)
+                    )
+                ),
+            0)
+            FROM loan_applications sub
+            INNER JOIN loan_types sub_lt ON sub.loan_type_code = sub_lt.code
+            WHERE sub.identity_document = la.identity_document
+              AND sub.status_code = :approvedStatus
+              AND sub.id <> la.id
+              AND sub.created_at < la.created_at
+            ) AS total_monthly_debt_approved
     FROM loan_applications la
     INNER JOIN statuses s ON la.status_code = s.code
     INNER JOIN loan_types lt ON la.loan_type_code = lt.code
@@ -70,5 +80,26 @@ public interface LoanApplicationReactiveRepository extends
             @Param("statusCode") String statusCode,
             @Param("loanTypeCode") String loanTypeCode,
             @Param("autoApproval") Boolean autoApproval
+    );
+
+    @Query("""
+SELECT COALESCE(
+    SUM(
+        la.amount * (
+            ( (lt.interest_rate/12) * POWER(1 + (lt.interest_rate/12), la.term) )
+            /
+            (POWER(1 + (lt.interest_rate/12), la.term) - 1)
+        )
+    ), 0)
+FROM loan_applications la
+INNER JOIN loan_types lt ON la.loan_type_code = lt.code
+INNER JOIN loan_applications lau ON lau.id = :id
+WHERE la.identity_document = lau.identity_document
+  AND la.status_code = :approvedStatus
+  AND la.id <> :id
+""")
+    Mono<BigDecimal> getTotalMonthlyDebtApprovedFromLoanApplicationById(
+            @Param("id") UUID id,
+            @Param("approvedStatus") String approvedStatus
     );
 }
