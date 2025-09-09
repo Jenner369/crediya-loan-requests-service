@@ -18,6 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ChangeLoanApplicationStatusUseCase
         implements ReactiveUseCase<ChangeLoanApplicationStatusUseCaseInput, Mono<LoanApplication>> {
+
     private final LoanApplicationRepository repository;
     private final UserRepository userRepository;
     private final LoanApplicationEventPublisher publisher;
@@ -25,10 +26,12 @@ public class ChangeLoanApplicationStatusUseCase
     @Override
     public Mono<LoanApplication> execute(ChangeLoanApplicationStatusUseCaseInput input) {
         return getLoanApplicationById(input.loanApplicationId())
-                .map(loanApplication -> validateCanChangeStatus(loanApplication, input.newStatusCode()))
+                .flatMap(loanApplication
+                        -> validateCanChangeStatus(loanApplication, input.newStatusCode()))
                 .map(this::setLoanTypeAndStatus)
                 .flatMap(this::setUser)
-                .map(loanApp -> changeStatus(loanApp, input.newStatusCode()))
+                .flatMap(loanApplication
+                        -> changeStatus(loanApplication, input.newStatusCode()))
                 .flatMap(this::persistAndPublish);
     }
 
@@ -37,10 +40,12 @@ public class ChangeLoanApplicationStatusUseCase
                 .switchIfEmpty(Mono.error(new LoanApplicationNotFoundException()));
     }
 
-    private LoanApplication validateCanChangeStatus(LoanApplication loanApplication, String newStatusCode) {
-        loanApplication.validateCanChangeStatus(newStatusCode);
+    private Mono<LoanApplication> validateCanChangeStatus(LoanApplication loanApplication, String newStatusCode) {
+        return Mono.fromCallable(() ->{
+            loanApplication.validateCanChangeStatus(newStatusCode);
 
-        return loanApplication;
+            return loanApplication;
+        });
     }
 
     private LoanApplication setLoanTypeAndStatus(LoanApplication loanApplication) {
@@ -55,23 +60,22 @@ public class ChangeLoanApplicationStatusUseCase
                 .switchIfEmpty(Mono.error(new UserNotFoundException()))
                 .map(user -> {
                     loanApplication.setUser(user);
-
                     return loanApplication;
                 });
     }
 
-    private LoanApplicationWithEvent changeStatus(LoanApplication loanApplication, String newStatusCode) {
-        loanApplication.setStatus(Statuses.fromCode(newStatusCode));
-        var event = loanApplication.changeStatus(newStatusCode);
+    private Mono<LoanApplicationWithEvent> changeStatus(LoanApplication loanApplication, String newStatusCode) {
+        return Mono.fromCallable(() -> {
+            loanApplication.setStatus(Statuses.fromCode(newStatusCode));
+            var event = loanApplication.changeStatus(newStatusCode);
 
-        return new LoanApplicationWithEvent(loanApplication, event);
+            return new LoanApplicationWithEvent(loanApplication, event);
+        });
     }
 
     private Mono<LoanApplication> persistAndPublish(LoanApplicationWithEvent wrapper) {
         return repository.save(wrapper.loanApplication())
-                .flatMap(savedLoanApp ->
-                        publisher.publishChange(wrapper.event())
-                                .thenReturn(savedLoanApp)
-                );
+                .flatMap(saved -> publisher.publishChange(wrapper.event())
+                        .thenReturn(saved));
     }
 }

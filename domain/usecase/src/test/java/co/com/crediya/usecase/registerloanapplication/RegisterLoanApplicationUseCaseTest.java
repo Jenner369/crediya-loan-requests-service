@@ -1,8 +1,10 @@
 package co.com.crediya.usecase.registerloanapplication;
 
+import co.com.crediya.exception.LoanApplicationOwnerMismatchException;
 import co.com.crediya.exception.LoanTypeNotFoundException;
 import co.com.crediya.model.common.gateways.TransactionalGateway;
 import co.com.crediya.model.loanapplication.LoanApplication;
+import co.com.crediya.model.loanapplication.gateways.LoanApplicationEventPublisher;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loantype.enums.LoanTypes;
 import co.com.crediya.model.loantype.gateways.LoanTypeRepository;
@@ -34,6 +36,9 @@ class RegisterLoanApplicationUseCaseTest {
     @Mock
     private TransactionalGateway transactionalGateway;
 
+    @Mock
+    private LoanApplicationEventPublisher loanApplicationEventPublisher;
+
     @InjectMocks
     private RegisterLoanApplicationUseCase registerLoanApplicationUseCase;
 
@@ -48,7 +53,7 @@ class RegisterLoanApplicationUseCaseTest {
                 .identityDocument("12345678")
                 .email("jennerjose369@gmail.com")
                 .statusCode(Statuses.PENDING.getCode())
-                .loanTypeCode(LoanTypes.PERSONAL_LOAN.getCode())
+                .loanTypeCode(LoanTypes.STUDENT_LOAN.getCode())
                 .build();
     }
 
@@ -64,7 +69,7 @@ class RegisterLoanApplicationUseCaseTest {
                 .build();
 
         when(loanApplicationRepository.save(loanApplication)).thenReturn(Mono.just(loanApplication));
-        when(loanTypeRepository.existsByCode(LoanTypes.PERSONAL_LOAN.getCode())).thenReturn(Mono.just(true));
+        when(loanTypeRepository.existsByCode(LoanTypes.STUDENT_LOAN.getCode())).thenReturn(Mono.just(true));
         when(transactionalGateway.execute(any()))
                 .thenAnswer(invocation -> {
                     Supplier<Mono<?>> supplier = invocation.getArgument(0);
@@ -93,7 +98,7 @@ class RegisterLoanApplicationUseCaseTest {
                 .baseSalary(new BigDecimal("5000000"))
                 .build();
 
-        when(loanTypeRepository.existsByCode(LoanTypes.PERSONAL_LOAN.getCode())).thenReturn(Mono.just(false));
+        when(loanTypeRepository.existsByCode(LoanTypes.STUDENT_LOAN.getCode())).thenReturn(Mono.just(false));
         when(transactionalGateway.execute(any()))
                 .thenAnswer(invocation -> {
                     Supplier<Mono<?>> supplier = invocation.getArgument(0);
@@ -107,5 +112,69 @@ class RegisterLoanApplicationUseCaseTest {
                 )))
                 .expectErrorMatches(LoanTypeNotFoundException.class::isInstance)
                 .verify();
+    }
+
+    @Test
+    void shouldThrowExceptionWhenOwnerMismatch() {
+        var user = User.builder().id(UUID.randomUUID()).build();
+        var authUser = User.builder().id(UUID.randomUUID()).build();
+
+        when(transactionalGateway.execute(any())).thenAnswer(invocation -> {
+            Supplier<Mono<?>> supplier = invocation.getArgument(0);
+            return supplier.get();
+        });
+
+        StepVerifier.create(registerLoanApplicationUseCase.execute(
+                        new RegisterLoanApplicationUseCaseInput(loanApplication, user, authUser)
+                ))
+                .expectErrorMatches(LoanApplicationOwnerMismatchException.class::isInstance)
+                .verify();
+    }
+
+    @Test
+    void shouldHandleLoanWithoutAutoApproval() {
+        var user = User.builder().id(UUID.randomUUID()).build();
+
+        when(loanApplicationRepository.save(any())).thenReturn(Mono.just(loanApplication));
+        when(loanTypeRepository.existsByCode(any())).thenReturn(Mono.just(true));
+        when(transactionalGateway.execute(any())).thenAnswer(invocation -> {
+            Supplier<Mono<?>> supplier = invocation.getArgument(0);
+            return supplier.get();
+        });
+
+        StepVerifier.create(registerLoanApplicationUseCase.execute(
+                        new RegisterLoanApplicationUseCaseInput(loanApplication, user, user)
+                ))
+                .expectNextMatches(la -> la.getId().equals(loanApplication.getId()))
+                .verifyComplete();
+
+        verify(loanApplicationRepository).save(any());
+    }
+
+    @Test
+    void shouldHandleLoanWithAutoApproval() {
+        var user = User.builder().id(UUID.randomUUID()).build();
+
+        loanApplication.setLoanTypeCode(LoanTypes.PERSONAL_LOAN.getCode());
+
+        when(loanApplicationRepository.save(any())).thenReturn(Mono.just(loanApplication));
+        when(loanTypeRepository.existsByCode(any())).thenReturn(Mono.just(true));
+        when(loanApplicationRepository.getTotalMonthlyDebtApprovedFromLoanApplicationById(any(), any()))
+                .thenReturn(Mono.just(new BigDecimal("5000")));
+        when(loanApplicationEventPublisher.publishValidation(any()))
+                .thenReturn(Mono.empty());
+        when(transactionalGateway.execute(any())).thenAnswer(invocation -> {
+            Supplier<Mono<?>> supplier = invocation.getArgument(0);
+            return supplier.get();
+        });
+
+        StepVerifier.create(registerLoanApplicationUseCase.execute(
+                        new RegisterLoanApplicationUseCaseInput(loanApplication, user, user)
+                ))
+                .expectNextMatches(la -> la.getTotalMonthlyDebtApproved().compareTo(new BigDecimal("5000")) == 0)
+                .verifyComplete();
+
+        verify(loanApplicationRepository).getTotalMonthlyDebtApprovedFromLoanApplicationById(any(), any());
+        verify(loanApplicationEventPublisher).publishValidation(any());
     }
 }
