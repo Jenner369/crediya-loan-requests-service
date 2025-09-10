@@ -4,6 +4,7 @@ import co.com.crediya.contract.ReactiveUseCase;
 import co.com.crediya.exception.LoanApplicationNotFoundException;
 import co.com.crediya.exception.UserNotFoundException;
 import co.com.crediya.model.loanapplication.LoanApplication;
+import co.com.crediya.model.loanapplication.events.LoanApplicationApprovedEvent;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationEventPublisher;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loantype.enums.LoanTypes;
@@ -13,6 +14,7 @@ import co.com.crediya.usecase.changeloanapplicationstatus.wrappers.LoanApplicati
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
+import java.util.Date;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -32,7 +34,8 @@ public class ChangeLoanApplicationStatusUseCase
                 .flatMap(this::setUser)
                 .flatMap(loanApplication
                         -> changeStatus(loanApplication, input.newStatusCode()))
-                .flatMap(this::persistAndPublish);
+                .flatMap(this::persistAndPublishChange)
+                .flatMap(this::publishIfApproved);
     }
 
     private Mono<LoanApplication> getLoanApplicationById(UUID id) {
@@ -73,9 +76,21 @@ public class ChangeLoanApplicationStatusUseCase
         });
     }
 
-    private Mono<LoanApplication> persistAndPublish(LoanApplicationWithEvent wrapper) {
+    private Mono<LoanApplication> persistAndPublishChange(LoanApplicationWithEvent wrapper) {
         return repository.save(wrapper.loanApplication())
                 .flatMap(saved -> publisher.publishChange(wrapper.event())
                         .thenReturn(saved));
+    }
+
+    private Mono<LoanApplication> publishIfApproved(LoanApplication loanApplication) {
+        if (Boolean.FALSE.equals(loanApplication.isApproved())) {
+            return Mono.just(loanApplication);
+        }
+
+        return publisher.publishApproved(
+                LoanApplicationApprovedEvent.fromApprovedLoanApplication(
+                        loanApplication,
+                        new Date()
+                )).thenReturn(loanApplication);
     }
 }

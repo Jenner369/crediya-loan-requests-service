@@ -1,7 +1,9 @@
 package co.com.crediya.usecase.applyloanapplicationdecision;
 
 import co.com.crediya.model.loanapplication.LoanApplication;
+import co.com.crediya.model.loanapplication.events.LoanApplicationApprovedEvent;
 import co.com.crediya.model.loanapplication.exceptions.CannotChangeLoanApplicationStatusException;
+import co.com.crediya.model.loanapplication.gateways.LoanApplicationEventPublisher;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.status.enums.Statuses;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +25,9 @@ class ApplyLoanApplicationDecisionUseCaseTest {
     @Mock
     private LoanApplicationRepository loanApplicationRepository;
 
+    @Mock
+    private LoanApplicationEventPublisher publisher;
+
     @InjectMocks
     private ApplyLoanApplicationDecisionUseCase useCase;
 
@@ -42,6 +47,8 @@ class ApplyLoanApplicationDecisionUseCaseTest {
     void shouldApplyDecisionSuccessfully() {
         when(loanApplicationRepository.findById(loanId)).thenReturn(Mono.just(loanApplication));
         when(loanApplicationRepository.save(any(LoanApplication.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+        when(publisher.publishApproved(any(LoanApplicationApprovedEvent.class)))
+                .thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.execute(new ApplyLoanApplicationDecisionUseCaseInput(loanId, Statuses.APPROVED.getCode())))
                 .expectNextMatches(loan -> loan.getStatusCode().equals(Statuses.APPROVED.getCode()))
@@ -49,6 +56,7 @@ class ApplyLoanApplicationDecisionUseCaseTest {
 
         verify(loanApplicationRepository).findById(loanId);
         verify(loanApplicationRepository).save(any(LoanApplication.class));
+        verify(publisher).publishApproved(any(LoanApplicationApprovedEvent.class));
     }
 
     @Test
@@ -62,5 +70,19 @@ class ApplyLoanApplicationDecisionUseCaseTest {
 
         verify(loanApplicationRepository).findById(loanId);
         verify(loanApplicationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldNotPublishIfNotApproved() {
+        when(loanApplicationRepository.findById(loanId)).thenReturn(Mono.just(loanApplication));
+        when(loanApplicationRepository.save(any(LoanApplication.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+
+        StepVerifier.create(useCase.execute(new ApplyLoanApplicationDecisionUseCaseInput(loanId, Statuses.REJECTED.getCode())))
+                .expectNextMatches(loan -> loan.getStatusCode().equals(Statuses.REJECTED.getCode()))
+                .verifyComplete();
+
+        verify(loanApplicationRepository).findById(loanId);
+        verify(loanApplicationRepository).save(any(LoanApplication.class));
+        verify(publisher, never()).publishApproved(any());
     }
 }
