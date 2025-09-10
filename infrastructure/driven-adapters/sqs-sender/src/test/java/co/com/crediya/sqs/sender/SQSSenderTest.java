@@ -1,5 +1,6 @@
 package co.com.crediya.sqs.sender;
 
+import co.com.crediya.model.loanapplication.events.LoanApplicationApprovedEvent;
 import co.com.crediya.model.loanapplication.events.LoanApplicationChangedEvent;
 import co.com.crediya.model.loanapplication.events.LoanApplicationValidationEvent;
 import co.com.crediya.model.loantype.enums.LoanTypes;
@@ -17,6 +18,8 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -38,6 +41,7 @@ class SQSSenderTest {
 
     private LoanApplicationChangedEvent changedEvent;
     private LoanApplicationValidationEvent validationEvent;
+    private LoanApplicationApprovedEvent approvedEvent;
 
     @BeforeEach
     void setUp() {
@@ -68,6 +72,12 @@ class SQSSenderTest {
                 "12345678",
                 new BigDecimal("5000000")
         );
+
+        approvedEvent = new LoanApplicationApprovedEvent(
+                UUID.randomUUID().toString(),
+                new BigDecimal("500000"),
+                Date.from(Instant.parse("2024-06-01T10:00:00Z"))
+        );
     }
 
     @Test
@@ -97,6 +107,19 @@ class SQSSenderTest {
     }
 
     @Test
+    void publishApprovedShouldSendEventSuccessfully() throws Exception {
+        var response = SendMessageResponse.builder().messageId("msg-789").build();
+        when(client.sendMessage(any(SendMessageRequest.class)))
+                .thenReturn(CompletableFuture.completedFuture(response));
+
+        StepVerifier.create(sqsSender.publishApproved(approvedEvent))
+                .verifyComplete();
+
+        verify(objectMapper).writeValueAsString(approvedEvent);
+        verify(client).sendMessage(any(SendMessageRequest.class));
+    }
+
+    @Test
     void publishChangeShouldReturnErrorOnJsonProcessingException() throws Exception {
         doThrow(new RuntimeException("JSON error")).when(objectMapper).writeValueAsString(changedEvent);
 
@@ -111,6 +134,16 @@ class SQSSenderTest {
         doThrow(new RuntimeException("JSON error")).when(objectMapper).writeValueAsString(validationEvent);
 
         StepVerifier.create(sqsSender.publishValidation(validationEvent))
+                .expectErrorMatches(throwable -> throwable instanceof RuntimeException
+                        && throwable.getMessage().equals("JSON error"))
+                .verify();
+    }
+
+    @Test
+    void publishApprovedShouldReturnErrorOnJsonProcessingException() throws Exception {
+        doThrow(new RuntimeException("JSON error")).when(objectMapper).writeValueAsString(approvedEvent);
+
+        StepVerifier.create(sqsSender.publishApproved(approvedEvent))
                 .expectErrorMatches(throwable -> throwable instanceof RuntimeException
                         && throwable.getMessage().equals("JSON error"))
                 .verify();

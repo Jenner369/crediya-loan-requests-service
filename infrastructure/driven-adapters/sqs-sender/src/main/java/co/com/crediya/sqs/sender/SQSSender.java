@@ -1,5 +1,6 @@
 package co.com.crediya.sqs.sender;
 
+import co.com.crediya.model.loanapplication.events.LoanApplicationApprovedEvent;
 import co.com.crediya.model.loanapplication.events.LoanApplicationChangedEvent;
 import co.com.crediya.model.loanapplication.events.LoanApplicationValidationEvent;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationEventPublisher;
@@ -46,6 +47,13 @@ public class SQSSender implements LoanApplicationEventPublisher {
     public Mono<Void> publishValidation(LoanApplicationValidationEvent event) {
         return Mono.fromCallable(() -> objectMapper.writeValueAsString(event))
                 .flatMap(msg -> send(msg, properties.validationQueueUrl()))
+                .then();
+    }
+
+    @Override
+    public Mono<Void> publishApproved(LoanApplicationApprovedEvent event) {
+        return Mono.fromCallable(() -> objectMapper.writeValueAsString(event))
+                .flatMap(msg -> send(msg, properties.approvedQueueUrl()))
                 .then();
     }
 }
