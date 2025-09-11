@@ -1,5 +1,6 @@
 package co.com.crediya.api.config;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +35,8 @@ public class WebFluxConfig implements WebFluxConfigurer {
     public ObjectMapper jacksonObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        mapper.getFactory().configure(JsonWriteFeature.ESCAPE_NON_ASCII.mappedFeature(), false);
+        mapper.getFactory().configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, false);
+        mapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, false);
 
         return mapper;
     }
