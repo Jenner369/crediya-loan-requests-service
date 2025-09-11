@@ -40,6 +40,7 @@ adapter:
     region: "${AWS_DEFAULT_REGION}"
     changedQueueUrl: "${AWS_SQS_LOAN_APPLICATIONS_CHANGES_QUEUE_URL}"
     validationQueueUrl: "${AWS_SQS_LOAN_APPLICATIONS_VALIDATIONS_QUEUE_URL}"
+    approvedQueueUrl: "${AWS_SQS_LOAN_APPLICATIONS_APPROVED_QUEUE_URL}"
 jwt:
   secret: "${JWT_SECRET}"
 resilience4j:

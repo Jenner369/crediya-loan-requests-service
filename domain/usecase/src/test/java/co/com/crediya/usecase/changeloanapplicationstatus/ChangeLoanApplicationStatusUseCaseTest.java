@@ -70,6 +70,7 @@ class ChangeLoanApplicationStatusUseCaseTest {
         when(userRepository.findByIdentityDocument("12345678")).thenReturn(Mono.just(user));
         when(repository.save(any(LoanApplication.class))).thenReturn(Mono.just(loanApplication));
         when(publisher.publishChange(any())).thenReturn(Mono.empty());
+        when(publisher.publishApproved(any())).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.execute(new ChangeLoanApplicationStatusUseCaseInput(
                         loanApplicationId,

@@ -3,7 +3,6 @@ package co.com.crediya.api.presentation.loanapplication.v1;
 import co.com.crediya.api.presentation.loanapplication.v1.handler.ChangeLoanApplicationStatusHandlerV1;
 import co.com.crediya.api.presentation.loanapplication.v1.handler.ListLoanApplicationsWithDetailsHandlerV1;
 import co.com.crediya.api.presentation.loanapplication.v1.handler.RegisterLoanApplicationHandlerV1;
-import co.com.crediya.usecase.listloanapplicationswithdetails.ListLoanApplicationsWithDetailsUseCaseInput;
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;

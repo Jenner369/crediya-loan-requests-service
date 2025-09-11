@@ -113,4 +113,8 @@ public class LoanApplication {
             throw new InvalidStatusForLoanApplicationException();
         }
     }
+
+    public Boolean isApproved() {
+        return Statuses.isApproved(this.statusCode);
+    }
 }
