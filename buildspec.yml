@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "Iniciando login en Amazon ECR..."
+      - aws --version
+      - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 598399550549.dkr.ecr.us-east-2.amazonaws.com
+      - REPOSITORY_URI=598399550549.dkr.ecr.us-east-2.amazonaws.com/crediya/crediya-loan-requests-service
+      - IMAGE_TAG=$(date +%Y%m%d%H%M%S)
+  build:
+    commands:
+      - echo "Construyendo imagen Docker..."
+      - docker build -f ./deployment/Dockerfile -t $REPOSITORY_URI:$IMAGE_TAG .
+  post_build:
+    commands:
+      - echo "Subiendo imagen a ECR..."
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo "Escribiendo en imagedefinitions.json..."
+      - printf '[{"name":"crediya-loan-requests-service","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+
+artifacts:
+  files: imagedefinitions.json
